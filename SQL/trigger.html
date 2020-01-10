@@ -1,1 +1,38 @@
-Microsoft SQL Trigger - Audit Table
+USE [genericallynamed_db]
+GO
+
+
+CREATE TABLE [dbo].[customerAudit](
+	[auditID] [int] IDENTITY(1,1) NOT NULL,
+	[customerID] [int] NOT NULL,
+	[customerName] [nvarchar](50) NOT NULL,
+	[isDeleted] [bit] NOT NULL,
+	[accountRepID] [int] NULL,
+	[createDate] [datetime] NOT NULL,
+ CONSTRAINT [PK_customerAudit] PRIMARY KEY CLUSTERED 
+(
+	[auditID] ASC
+)) ON [PRIMARY]
+GO
+
+
+CREATE TRIGGER [dbo].[CustomerAuditTrigger]
+                    ON
+                    [dbo].[customer]
+                    FOR INSERT, UPDATE
+                    AS
+                    BEGIN
+                        INSERT INTO customerAudit 
+                        (customerID, customerName, isDeleted, accountRepID, createDate)
+                        select i.customerID, i.customerName, i.isDeleted, i.AccountRepID, getdate()
+                        from customer c
+                        inner join inserted i on c.customerID = i.customerID
+                    END
+GO
+
+ALTER TABLE [dbo].[customer] ENABLE TRIGGER [CustomerAuditTrigger]
+GO
+
+
+
+
