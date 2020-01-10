@@ -1,38 +1,50 @@
-USE [genericallynamed_db]
+<!DOCTYPE html>
+<html>
+<head>
+	<title>SQL Triggers</title>
+	<style>		
+		h2   {color: blue;}
+		span {margin-left: 40px;}
+		span.second {margin-left: 60px;}
+	</style>
+</head>
+
+<body>
+<p>USE [genericallynamed_db] <br/> GO </p>
+
+<p>CREATE TABLE [dbo].[customerAudit](<br/>
+<span>  [auditID] [int] IDENTITY(1,1) NOT NULL,</span><br/>
+<span>	[customerID] [int] NOT NULL,</span><br/>
+<span>	[customerName] [nvarchar](50) NOT NULL,</span><br/>
+<span>	[isDeleted] [bit] NOT NULL,</span><br/>
+<span>	[accountRepID] [int] NULL,</span><br/>
+<span>	[createDate] [datetime] NOT NULL,</span><br/>
+<span> CONSTRAINT [PK_customerAudit] PRIMARY KEY CLUSTERED</span><br/> 
+<span> ( [auditID] ASC )) ON [PRIMARY]</span><br/>
 GO
+</p>
 
-
-CREATE TABLE [dbo].[customerAudit](
-	[auditID] [int] IDENTITY(1,1) NOT NULL,
-	[customerID] [int] NOT NULL,
-	[customerName] [nvarchar](50) NOT NULL,
-	[isDeleted] [bit] NOT NULL,
-	[accountRepID] [int] NULL,
-	[createDate] [datetime] NOT NULL,
- CONSTRAINT [PK_customerAudit] PRIMARY KEY CLUSTERED 
-(
-	[auditID] ASC
-)) ON [PRIMARY]
+<p>CREATE TRIGGER [dbo].[CustomerAuditTrigger] <br/>
+<span>ON</span><br/>
+<span>[dbo].[customer]</span><br/>
+<span>FOR INSERT, UPDATE</span><br/>
+<span>AS</span><br/>
+<span>BEGIN</span><br/>
+<span class="second">INSERT INTO customerAudit </span><br/>
+<span class="second">(customerID, customerName, isDeleted, accountRepID, createDate)</span><br/>
+<span class="second">select i.customerID, i.customerName, i.isDeleted, i.AccountRepID, getdate()</span><br/>
+<span class="second">from customer c</span><br/>
+<span class="second">inner join inserted i on c.customerID = i.customerID</span><br/>
+<span>END</span><br/>
 GO
+</p>
 
-
-CREATE TRIGGER [dbo].[CustomerAuditTrigger]
-                    ON
-                    [dbo].[customer]
-                    FOR INSERT, UPDATE
-                    AS
-                    BEGIN
-                        INSERT INTO customerAudit 
-                        (customerID, customerName, isDeleted, accountRepID, createDate)
-                        select i.customerID, i.customerName, i.isDeleted, i.AccountRepID, getdate()
-                        from customer c
-                        inner join inserted i on c.customerID = i.customerID
-                    END
+<p>
+ALTER TABLE [dbo].[customer] ENABLE TRIGGER [CustomerAuditTrigger]<br/>
 GO
-
-ALTER TABLE [dbo].[customer] ENABLE TRIGGER [CustomerAuditTrigger]
-GO
+</p>
 
 
-
+</body>
+</html>
 
